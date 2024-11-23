@@ -154,6 +154,21 @@ app.post("/fight/:id/start", (req, res) => {
   res.json(fight);
 });
 
+// Skip to the next combatant
+app.post("/fight/:id/skip", (req, res) => {
+  const fightId = req.params.id;
+  const fight = fights.get(fightId);
+
+  if (!fight) return res.status(404).send("Fight not found.");
+  if (fight.combatants.length === 0) return res.status(400).send("No combatants to start.");
+
+  fight.currentTurn = getNextCombatantIndex(fight.combatants, fight.currentTurn);
+  fight.countdown = 30;
+  broadcastFightUpdate(fightId);
+
+  res.json(fight);
+});
+
 // Stop the fight
 app.post("/fight/:id/stop", (req, res) => {
   const fightId = req.params.id;
