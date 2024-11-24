@@ -6,8 +6,11 @@ const MainPage = () => {
   const [name, setName] = useState("");
   const navigate = useNavigate();
 
+  const server = process.env.REACT_APP_BACKEND_URL;
+
+
   const createFight = async () => {
-    const response = await fetch("http://localhost:3000/fight", {
+    const response = await fetch(`${server}/fight`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),

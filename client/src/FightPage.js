@@ -4,7 +4,8 @@ import { io } from "socket.io-client";
 import Controls from "./components/Controls";
 import CombatantsList from "./components/CombatantsList";
 
-const socket = io("http://localhost:3000");
+const server = process.env.REACT_APP_BACKEND_URL;
+const socket = io(`${server}`);
 
 const FightPage = () => {
   const { id } = useParams();
@@ -14,6 +15,9 @@ const FightPage = () => {
   const [initiative, setInitiative] = useState("");
   const [countdownDuration, setCountdownDuration] = useState(30);
   const [isMuted, setIsMuted] = useState(false);
+
+  const server = process.env.REACT_APP_BACKEND_URL
+
 
   function beep() {
     if (!isMuted) {
@@ -25,7 +29,7 @@ const FightPage = () => {
   useEffect(() => {
     socket.emit("joinFight", id);
 
-    fetch(`http://localhost:3000/fight/${id}`)
+    fetch(`${server}/fight/${id}`)
       .then((res) => res.json())
       .then((data) => setFight(data));
 
@@ -35,7 +39,7 @@ const FightPage = () => {
         beep();
       }
     });
-
+    
     return () => {
       socket.off("fightUpdate");
     };
@@ -44,7 +48,7 @@ const FightPage = () => {
   const addCombatant = async () => {
     if (name.trim() === "" || !Number.isInteger(Number(initiative))) return;
 
-    const response = await fetch(`http://localhost:3000/fight/${id}/combatant`, {
+    const response = await fetch(`${server}/fight/${id}/combatant`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, initiative: parseInt(initiative, 10) }),
@@ -56,7 +60,7 @@ const FightPage = () => {
   };
 
   const startFight = async () => {
-    await fetch(`http://localhost:3000/fight/${id}/start`, {
+    await fetch(`${server}/fight/${id}/start`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ countdownDuration }),
@@ -64,12 +68,12 @@ const FightPage = () => {
   };
 
   const resetFight = async () => {
-    const response = await fetch(`http://localhost:3000/fight/${id}`);
+    const response = await fetch(`${server}/fight/${id}`);
     const oldFight = await response.json();
 
-    await fetch(`http://localhost:3000/fight/${id}/stop`, { method: "POST" });
+    await fetch(`${server}/fight/${id}/stop`, { method: "POST" });
 
-    const newResponse = await fetch("http://localhost:3000/fight", {
+    const newResponse = await fetch("${server}/fight", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: oldFight.name }),
@@ -77,7 +81,7 @@ const FightPage = () => {
     const newFight = await newResponse.json();
 
     for (const combatant of oldFight.combatants) {
-      await fetch(`http://localhost:3000/fight/${newFight.fightId}/combatant`, {
+      await fetch(`${server}/fight/${newFight.fightId}/combatant`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -87,7 +91,7 @@ const FightPage = () => {
       });
     }
 
-    await fetch(`http://localhost:3000/fight/${newFight.fightId}/start`, {
+    await fetch(`${server}/fight/${newFight.fightId}/start`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ countdownDuration }),
@@ -97,11 +101,11 @@ const FightPage = () => {
   };
 
   const finishTurn = async () => {
-    await fetch(`http://localhost:3000/fight/${id}/skip`, { method: "POST" });
+    await fetch(`${server}/fight/${id}/skip`, { method: "POST" });
   };
 
   const actNow = async (combatantId, position) => {
-    await fetch(`http://localhost:3000/fight/${id}/actNow`, {
+    await fetch(`${server}/fight/${id}/actNow`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ combatantId, position }),
@@ -109,7 +113,7 @@ const FightPage = () => {
   };
 
   const updateStatus = async (combatantId, status) => {
-    await fetch(`http://localhost:3000/fight/${id}/combatant/${combatantId}/status`, {
+    await fetch(`${server}/fight/${id}/combatant/${combatantId}/status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
@@ -117,7 +121,7 @@ const FightPage = () => {
   };
 
   const updateCountdownDuration = async () => {
-    await fetch(`http://localhost:3000/fight/${id}/countdown`, {
+    await fetch(`${server}/fight/${id}/countdown`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ countdownDuration }),

@@ -8,7 +8,11 @@ const cors = require("cors"); // Import CORS middleware
 const app = express();
 app.use(express.json());
 
-app.use(cors({ origin: "https://dndinitiativetracker-g3424li0l-shys-projects-e8e03e1e.vercel.app" }));
+app.use(cors({
+  origin: ["https://dndinitiativetracker-g3424li0l-shys-projects-e8e03e1e.vercel.app",
+    "http://localhost:3001",
+    "http://localhost:3000"]
+}));
 
 
 // In-memory storage
@@ -217,7 +221,7 @@ app.post("/fight/:id/actNow", (req, res) => {
 app.put("/fight/:id/countdown", (req, res) => {
   const fight = fights.get(req.params.id);
   if (!fight) return res.status(404).send("Fight not found.");
-  
+
   const { countdownDuration } = req.body;
   if (Number.isInteger(countdownDuration) && countdownDuration >= 10 && countdownDuration <= 60) {
     fight.countdownDuration = countdownDuration; // Update the server-side countdown
