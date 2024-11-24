@@ -4,9 +4,6 @@ import { io } from "socket.io-client";
 import Controls from "./components/Controls";
 import CombatantsList from "./components/CombatantsList";
 
-const server = process.env.REACT_APP_BACKEND_URL;
-const socket = io(`${server}`);
-
 const FightPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,7 +14,8 @@ const FightPage = () => {
   const [isMuted, setIsMuted] = useState(false);
 
   const server = process.env.REACT_APP_BACKEND_URL
-
+  const socket = io(`${server}`);
+  console.log(`${server}`);
 
   function beep() {
     if (!isMuted) {
