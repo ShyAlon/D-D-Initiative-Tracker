@@ -115,7 +115,7 @@ app.put("/fight/:id/combatant/:combatantId/status", (req, res) => {
   if (!combatant) return res.status(404).send("Combatant not found.");
 
   const { status } = req.body;
-  if (!["Normal", "Wait", "Out"].includes(status)) {
+  if (!["Normal", "Wait", "Ready", "Out"].includes(status)) {
     return res.status(400).send("Invalid status.");
   }
 
@@ -144,7 +144,7 @@ app.post("/fight/:id/start", (req, res) => {
       fight.countdown -= 1;
     } else {
       fight.currentTurn = getNextCombatantIndex(fight.combatants, fight.currentTurn);
-      fight.countdown = 30; // Reset countdown for the next combatant
+      fight.countdown = fight.countdownDuration || 30; // Reset countdown for the next combatant
     }
     broadcastFightUpdate(fightId); // Broadcast updates to all clients
   }, 1000);
@@ -187,6 +187,46 @@ app.post("/fight/:id/stop", (req, res) => {
   broadcastFightUpdate(fightId); // Notify clients
   res.json(fight);
 });
+
+// Move combatant in turn order
+app.post("/fight/:id/actNow", (req, res) => {
+  const { combatantId, position } = req.body;
+  const fight = fights.get(req.params.id);
+  if (!fight) return res.status(404).send("Fight not found.");
+
+  const currentIndex = fight.currentTurn;
+  const combatantIndex = fight.combatants.findIndex((c) => c.id === combatantId);
+  if (combatantIndex === -1) return res.status(404).send("Combatant not found.");
+
+  const combatant = fight.combatants.splice(combatantIndex, 1)[0];
+
+  if (position === "before") {
+    fight.combatants.splice(currentIndex, 0, combatant);
+    fight.countdown = 30; // Restart countdown
+    fight.currentTurn = currentIndex; // Stay on the same turn
+  } else if (position === "after") {
+    fight.combatants.splice(currentIndex + 1, 0, combatant);
+  }
+  combatant.status = "Normal";
+  broadcastFightUpdate(req.params.id);
+  res.json(fight);
+});
+
+// Update countdown duration
+app.put("/fight/:id/countdown", (req, res) => {
+  const fight = fights.get(req.params.id);
+  if (!fight) return res.status(404).send("Fight not found.");
+  
+  const { countdownDuration } = req.body;
+  if (Number.isInteger(countdownDuration) && countdownDuration >= 10 && countdownDuration <= 60) {
+    fight.countdownDuration = countdownDuration; // Update the server-side countdown
+    broadcastFightUpdate(req.params.id); // Notify all connected clients
+    res.json(fight);
+  } else {
+    res.status(400).send("Invalid countdown duration.");
+  }
+});
+
 
 // Fallback for React Router
 app.get("*", (req, res) => {

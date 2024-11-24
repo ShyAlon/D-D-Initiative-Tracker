@@ -1,38 +1,56 @@
 // Location: client/src/MainPage.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const MainPage = () => {
+  const [name, setName] = useState("");
   const navigate = useNavigate();
-  const [name, setName] = React.useState("");
 
-  const startFight = async () => {
+  const createFight = async () => {
     const response = await fetch("http://localhost:3000/fight", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     });
     const data = await response.json();
-    navigate(data.url);
+    navigate(`/fight/${data.fightId}`);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      createFight();
+    }
   };
 
   return (
     <div className="page-container">
-      <div className="title">D&D Initiative Manager</div>
+      <div className="title">Create a New Fight</div>
       <input
         type="text"
-        placeholder="Fight Name"
+        placeholder="Enter fight name"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        onKeyPress={handleKeyPress}
         style={{
-          margin: "20px 0",
           padding: "10px",
-          width: "100%",
+          marginBottom: "20px",
           borderRadius: "5px",
           border: "1px solid #ccc",
         }}
       />
-      <button onClick={startFight}>Start Fight</button>
+      <button
+        onClick={createFight}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Create Fight
+      </button>
     </div>
   );
 };
