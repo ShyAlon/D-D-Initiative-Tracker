@@ -8,7 +8,6 @@ const cors = require("cors"); // Import CORS middleware
 const app = express();
 app.use(express.json());
 
-const cors = require("cors");
 app.use(cors({ origin: "https://dndinitiativetracker-g3424li0l-shys-projects-e8e03e1e.vercel.app" }));
 
 
