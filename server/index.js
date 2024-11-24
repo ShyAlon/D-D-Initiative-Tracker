@@ -8,11 +8,25 @@ const cors = require("cors"); // Import CORS middleware
 const app = express();
 app.use(express.json());
 
-app.use(cors({
-  origin: ["https://dndinitiativetracker-g3424li0l-shys-projects-e8e03e1e.vercel.app",
-    "http://localhost:3001",
-    "http://localhost:3000"]
-}));
+// Allow multiple origins
+const allowedOrigins = [
+  "http://localhost:3001", // Local React frontend
+  "https://dndinitiativetracker-m0nlg1bmu-shys-projects-e8e03e1e.vercel.app", // Deployed React frontend
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
+    credentials: true, // If using cookies or authentication
+  })
+);
 
 
 // In-memory storage
